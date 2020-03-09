@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.1.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.1.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-4.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<context:annotation-config/>
+	
+	<tx:annotation-driven/>
+	
+	 <!-- 트랜잭션 관리자 등록 -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <!-- JPA 예외를 스프링 예외로 변환 -->
+    <bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+    
+    <!-- JPA 설정 ( 엔티티 매니저 팩토리 등록 ) -->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <!-- @Entity 탐색 범위 -->
+        <property name="packagesToScan" >
+        	<array>
+              <value>com.victolee.guestbook.domain</value>
+              <value>com.hyukje.domain</value>
+         	</array>
+        </property>
+        <property name="dataSource" ref="dataSource" />
+        <!-- 하이버네이트 구현체 사용 -->
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+        </property>
+        
+        <!-- 하이버네이트 상세 설정 -->
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop> <!-- 방언 -->
+                <prop key="hibernate.show_sql">true</prop>                          <!-- SQL 보기 -->
+                <prop key="hibernate.format_sql">true</prop>                        <!-- SQL 정렬해서 보기 -->
+                <prop key="hibernate.use_sql_comments">true</prop>                  <!-- SQL 주석 보기 -->
+                <prop key="hibernate.id.new_generator_mappings">true</prop>         <!-- JPA 표준에 맞게 새로운 키 생성 전략을 사용-->
+                <prop key="hibernate.hbm2ddl.auto">update</prop>                    <!-- DDL 자동 생성 -->
+            </props>
+        </property>
+    </bean>
+
+    <!-- Connection Pool DataSource -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/jpadb" />
+        <property name="username" value="root" />
+        <property name="password" value="ks157680" />
+    </bean>
+    
+    <context:component-scan base-package="com.victolee.guestbook.service, com.victolee.guestbook.repository, com.hyukje">
+        <context:include-filter type="annotation"
+                                expression="org.springframework.stereotype.Repository" />
+        <context:include-filter type="annotation"
+                                expression="org.springframework.stereotype.Service" />
+        <context:include-filter type="annotation"
+                                expression="org.springframework.stereotype.Component" />
+    </context:component-scan>
+    
+    <jpa:repositories base-package="com.victolee.guestbook, com.hyukje"></jpa:repositories>
+    
+</beans>
