@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -24,6 +25,8 @@ public class QBoard extends EntityPathBase<Board> {
     public final StringPath content = createString("content");
 
     public final DateTimePath<java.sql.Timestamp> regdate = createDateTime("regdate", java.sql.Timestamp.class);
+
+    public final ListPath<Profile, QProfile> seqno = this.<Profile, QProfile>createList("seqno", Profile.class, QProfile.class, PathInits.DIRECT2);
 
     public final StringPath title = createString("title");
 

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,8 @@ public interface BoardRepository extends JpaRepository<Board, Long>{
 	public List<Object[]> findByTitle2(String title);
 	@Query("select b from Board b where b.bno > 0 order by b.bno desc")
 	public List<Board> findByPage(Pageable pageable);
+	
+	@Query("select b.bno, b.title, b.writer , p.seqno, p.name from Board b left outer join b.seqno p")
+	public List<Object[]> findBoardAndProfile();
+	
 }

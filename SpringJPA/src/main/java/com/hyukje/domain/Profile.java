@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Getter;
@@ -20,10 +21,13 @@ import lombok.ToString;
 public class Profile {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long seqno;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long seqno;
 	
 	private String name;
 	private String title;
+	
+	@ManyToOne
+	private Board board;
 	
 }

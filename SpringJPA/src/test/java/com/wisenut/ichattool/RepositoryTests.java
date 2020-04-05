@@ -2,6 +2,7 @@ package com.wisenut.ichattool;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
@@ -16,14 +17,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.hyukje.domain.Board;
+import com.hyukje.domain.Profile;
 import com.hyukje.domain.QBoard;
+import com.hyukje.domain.QProfile;
 import com.hyukje.persistence.BoardRepository;
-import com.querydsl.jpa.impl.JPAQuery;
+import com.hyukje.persistence.ProfileRepository;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.victolee.guestbook.domain.GuestBook;
 import com.victolee.guestbook.service.GuestBookService;
+import com.wisenut.ichattol.dto.BoardAndProfileDTO;
 
 import lombok.extern.java.Log;
 
@@ -39,6 +45,9 @@ public class RepositoryTests {
 	
 	@Autowired
 	private BoardRepository boardRepo;
+	
+	@Autowired
+	private ProfileRepository profileRepo;
 	
 	@Autowired
 	private EntityManager entityManager;
@@ -58,6 +67,18 @@ public class RepositoryTests {
 			boardRepo.save(board);
 		}
 		
+	}
+	
+	@Test
+	public void test200InsertProfile() throws Exception{
+		
+		for(int i=1;i<=201;i++) {
+			Profile profile = new Profile();
+			profile.setName("hello"+i);
+			profile.setTitle("프로파일"+i);
+			boardRepo.findBybno((long)i).ifPresent(board->profile.setBoard(board));
+			profileRepo.save(profile);
+		}
 	}
 
 	@Test
@@ -174,5 +195,61 @@ public class RepositoryTests {
 				.fetchCount();
 		//list.forEach(b->log.info(b.toString()));
 		System.out.println(list);
+	}
+	
+	@Test
+	@Transactional
+	public void joinTest() {
+		JPAQueryFactory query = new JPAQueryFactory(entityManager);
+		QBoard qboard = QBoard.board;
+		QProfile qprofile = QProfile.profile;
+
+		
+		List<Tuple> list = query.selectFrom(qboard)
+				.select(qboard.bno,qboard.content, qprofile.seqno, qprofile.name)
+				.leftJoin(qboard.seqno, qprofile)
+				.where(qboard.bno.eq(qprofile.seqno))
+				.fetch();
+		
+		System.out.println("결과: "+list.toString());
+		
+		
+	}
+	
+	@Test
+	public void 테스테스트() {
+		// "select b.bno, b.title, b.writer , p.seqno, p.name from Board b left outer join b.seqno p"
+		String result = boardRepo.findBoardAndProfile().stream().map(b->{
+			BoardAndProfileDTO dto = new BoardAndProfileDTO();
+			dto.setBno((Long)b[0]);
+			dto.setTitle((String)b[1]);
+			dto.setWriter((String)b[2]);
+			dto.setSeqno((Long)b[3]);
+			dto.setName((String)b[4]);
+			return dto;
+		}).collect(Collectors.toList()).toString();
+		
+		System.out.println(result);
+	}
+	
+	//단방향 연관관계 테스트
+	@Test
+	public void associativeTest() {
+		Board board = new Board();
+		board.setTitle("제목..."+201);
+		board.setContent("내용..."+201);
+		board.setWriter("user0"+(201%10));
+		
+		Profile profile1 = new Profile();
+		profile1.setName("이름이름이름");
+		profile1.setTitle("제목이야제목");
+		
+		Profile profile2 = new Profile();
+		profile2.setTitle("제목이야제목2");
+		profile2.setName("이름이야이름2");
+		
+		board.setSeqno(Arrays.asList(profile1, profile2));
+		
+		boardRepo.save(board);
 	}
 }
